@@ -166,3 +166,9 @@ files
 logs
 result
 files/*
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/rolnik-plan.iml
+/.idea/vcs.xml
+/.idea/.gitignore
