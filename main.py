@@ -30,6 +30,10 @@ class WebDataHandler:
         """Response code is not 200"""
         pass
 
+    class WrongPathProvided(Exception):
+        """Provided path does not exist"""
+        pass
+
     def get_unix_timestamp(self, timestamp: datetime = datetime.now()):
         self.unixTimestamp = time.mktime(timestamp.timetuple())
         return self.unixTimestamp
@@ -90,8 +94,23 @@ class WebDataHandler:
         else:
             raise self.InvalidResponseCode
 
-    def get_all_files(self, to_object: bool = False):
-        list_respone = requests.get()
+    # def get_all_files(self, to_object: bool = False):
+    #     list_respone = requests.get()
+
+    def parse_json(self, filename: str):
+        if not filename:
+            raise self.WrongPathProvided
+        output_path = os.path.join("result", f"{filename}.out.json")
+        if os.path.exists(output_path):
+            logger.warn(f"{output_path} already exists. Removing...")
+            os.remove(output_path)
+
+        open(output_path, 'x').close()
+        with open(output_path, 'w') as out_file:
+            with open(os.path.join("files", f"{filename}.json"), 'r'):
+                # TODO
+                pass
+        return output_path
 
 
 web_handler = WebDataHandler()
