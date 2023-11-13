@@ -1,5 +1,6 @@
 import time
 import os
+import bs4
 import pprint
 import requests
 import json
@@ -105,11 +106,30 @@ class WebDataHandler:
             logger.warn(f"{output_path} already exists. Removing...")
             os.remove(output_path)
 
-        open(output_path, 'x').close()
         with open(output_path, 'w') as out_file:
-            with open(os.path.join("files", f"{filename}.json"), 'r'):
-                # TODO
-                pass
+            with open(os.path.join("files", f"{filename}.json"), 'r') as file:
+                original_json = json.loads(file.read())
+                parsed_dict = {}
+
+                for i, st_layer in enumerate(original_json):
+                    parsed_dict[i] = {}  # Initialize the nested dictionary for i
+                    for j, entry in enumerate(st_layer):
+                        if entry == '&nbsp;':
+                            parsed_dict[i][j] = None
+                        else:
+                            parsed_dict[i][j] = []  # Initialize a list to store values
+
+                            for elem in entry.split(","):
+                                parser = bs4.BeautifulSoup(elem, 'html.parser')
+                                elements = parser.select(".tab-n")
+                                if elements:
+                                    parsed_dict[i][j].append(elements[0].get("data-file-id"))
+                                else:
+                                    pass  # or any other placeholder value
+
+                # Write the parsed_dict as JSON to the output file
+                json.dump(parsed_dict, out_file, indent=4)
+
         return output_path
 
 
@@ -121,12 +141,15 @@ if os.path.exists("files"):
     shutil.rmtree("files")
 os.mkdir("files")
 
-for elem in web_handler.listDict:
-    logger.info(f"Downloading {str(elem)} file")
-    logger.debug(web_handler.get_file(web_handler.listDict[elem])["var_name"])
-
 if os.path.exists("result"):
     shutil.rmtree("result")
 os.mkdir("result")
 
+for elem in web_handler.listDict:
+    logger.info(f"Downloading {str(elem)} file")
+    logger.debug(web_handler.get_file(web_handler.listDict[elem])["var_name"])
+    logger.info(f"Parsing {str(elem)}")
+    web_handler.parse_json(web_handler.listDict[elem])
 
+# web_handler.parse_json("s1")
+logger.info("Goodbye :)")
